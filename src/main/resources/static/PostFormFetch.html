@@ -11,7 +11,7 @@
 
 
     <script>
-        var formulaire, boutonAjouter, tableCategories, message, template;
+        var formulaire, boutonAjouter, tableCategories, message, template, boutonSupp;
         // Exécuté à la fin du chargement de la page
         window.onload = function () {
             formulaire = document.getElementById("formulaire");
@@ -21,6 +21,7 @@
             template = document.getElementById("categoriesTemplate").innerHTML;
             boutonAjouter.addEventListener("click", ajouteCategorie);
             chargeCategories();
+            boutonSupp.addEventListener("click",suppCategorie)
         };
 
         // Transforme les données saisies dans le formulaire en format JSON
@@ -91,39 +92,62 @@
                 })
                 .catch(afficheMessage);
         }
+        function suppCategorie(url){
+            fetch(url,{
+                method: 'delete',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: serializeFormToJSON(formulaire)
+            })
+                .then(response => {
+                    switch (response.status) {
+                        case 200:
+                            chargeCategories();
+                            break;
+                        case 409:
+                            afficheMessage("La categorie a des produits.");
+                            break;
+                    }
+                })
+                .catch(afficheMessage);
+        }
+
     </script>
 </head>
 
 <body>
-    <!-- Le formulaire de saisie -->
-    <form id="formulaire">
-        <label for="libelle">Libellé</label>
-        <input name="libelle" placeholder="Libellé de la catégorie"><br>
-        <label for="description">Description</label>
-        <textarea name="description" placeholder="Description de la catégorie"></textarea><br>
-        <button type="button" id="boutonAjouter">Ajouter</button>
-    </form>
-    <!-- Les messages d'erreur s'affichent ici -->
-    <div id="message"></div>
-    <!-- La table des catégories -->
-    <div id="tableCategories"></div>
-    <hr>
+<!-- Le formulaire de saisie -->
+<form id="formulaire">
+    <label for="libelle">Libellé</label>
+    <input id="libelle" name="libelle" placeholder="Libellé de la catégorie"><br>
+    <label for="description">Description</label>
+    <textarea id="description" name="description" placeholder="Description de la catégorie"></textarea><br>
+    <button type="button" id="boutonAjouter">Ajouter</button>
+</form>
+<!-- Les messages d'erreur s'affichent ici -->
+<div id="message"></div>
+<!-- La table des catégories -->
+<div id="tableCategories"></div>
+<hr>
 
-    <a href="/">Retour au menu</a>
+<a href="/">Retour au menu</a>
 
-    <!-- Le template Mustache qui sert à formatter la liste des catégories -->
-    <script id="categoriesTemplate" type="text/template">
-        <h2>Liste des catégories ({{_embedded.categories.length}} / {{page.totalElements}})</h2>
-        <TABLE>
+<!-- Le template Mustache qui sert à formatter la liste des catégories -->
+<script id="categoriesTemplate" type="text/template">
+    <h2>Liste des catégories ({{_embedded.categories.length}} / {{page.totalElements}})</h2>
+    <TABLE>
         {{! Un commentaire Mustache }}
-        <TR><TH>Code</TH><TH>Libelle</TH><TH>Description</TH></TR>
+        <TR><TH>Code</TH><TH>Libelle</TH><TH>Description</TH><th>Action</th></TR>
         {{! Pour chaque categorie dans le tableau 'categories' }}
         {{#_embedded.categories}}
         {{! Une ligne dans la table }}
-        <TR><TD>{{code}}</TD><TD>{{libelle}}</TD><TD>{{description}}</TD></TR>
+        <TR><TD>{{code}}</TD><TD>{{libelle}}</TD><TD>{{description}}</TD>
+            <td><button type="button" id="bouttonSupp" name="action" class="suppCategorie" onclick="suppCategorie('{{_links.self.href}}')">Supprimer</button></td></TR>
         {{/_embedded.categories}}
-        </TABLE>
-    </script>
+    </TABLE>
+</script>
 </body>
 
 </html>
